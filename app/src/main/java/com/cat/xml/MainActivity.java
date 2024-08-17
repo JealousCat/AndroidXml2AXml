@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
                     builder.setView(view).setTitle("布局预览").create().show();
                     sb.append("\n");
                     sb.append("ID表").append(ids);
+                    //System.out.println(ids.get("xxx"));
                     ((TextView)findViewById(R.id.results)).setText(sb.toString());
                 } catch (Exception e) {
                     e.printStackTrace();

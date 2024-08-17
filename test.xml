@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingLeft="6dp"
+    android:paddingRight="6dp"
+    android:tag="这是ID:7f0b0055"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:tag="这是ID:7f0b00ee"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_gravity="center_vertical"
+            android:tag="这是ID:7f0b000e"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Example of message text" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:tag="这是ID:7f0b0088"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_gravity="center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="一个TextView" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:tag="这是ID:7f0b0015"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:tag="这是ID:7f0b0016"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="选择1" />
+            <CheckBox
+                android:tag="这是ID:7f0b0017"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="选择2" />
+            <CheckBox
+                android:tag="这是ID:7f0b0018"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="选择2" />
+            <TextView
+                android:layout_gravity="center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="提示：" />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <Button
+            android:textSize="16sp"
+            android:tag="这是ID:7f0b0019"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="执行"
+            android:layout_weight="1.0" />
+    </LinearLayout>
+</ScrollView>

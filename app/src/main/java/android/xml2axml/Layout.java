@@ -266,7 +266,7 @@ public class Layout {
                 ids = collectId(source);
                 data = XMLBuilder.compileXml(context,source);
             }else{
-                ids = collectId(Decoder.decode(data));
+                ids = collectId(Decoder.decode(context,data));
             }
             Object xmlBlock = newBlock.newInstance((Object) data);
             xrp = (XmlResourceParser) newParser.invoke(xmlBlock);
