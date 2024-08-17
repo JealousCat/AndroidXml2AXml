@@ -3,14 +3,19 @@
 
 # 优点
 1.由Java实现，不借助aapt或aapt2等库，具有轻量和维护方便的特性
+
 2.支持axml转xml（该部分功能基于[AndroidBinaryXml](https://github.com/senswrong/AndroidBinaryXml)）
+
 3.支持xml转axml、axml转view，也可直接xml转view
 （xml转axml或view的实现部分均有注释，可阅读帮助理解）
 
 # 缺点
 1.不支持链接上其他诸如drawable、style、layout的资源文件
+
 2.不支持id属性，如果你写了id属性，将会被替换为tag属性，并将解析tag属性存储到一个HashMap<String, View>中
+
 3.android命名空间外的其他命名空间可能会导致编译错误
+
 4.目前采用tag来赋值查找子布局，由于编码格式的原因，部分tag会出现设置失效的情况。如果你使用findViewWithTag来查找子布局，可能会出现查找结果为null的情况。（这属于是一个已知BUG，暂未修复成功）
 但，为了解决上述问题，使用了布局childAt来获得对应tag的子布局，其结果存储在前面所说的HashMap中，如果你要获取子布局，建议从该HashMap中获取。
 
@@ -23,17 +28,20 @@
 的写法会被替换为
 `android:tag="xxxx"`
 在视图缓存map中，应当使用xxxx名字来访问对应布局。
+
 在编写Android Xml时，应当尽量使用tag来表示id。当然，你无需担心你在其他地方使用了setTag设置了新tag后影响map的访问。
 
 2.XML转AXML，[参见AndroidXml2AXml](https://github.com/JealousCat/AndroidXml2AXml)
-`//public static byte[] compileXml(Context context,String str)
+```
+//public static byte[] compileXml(Context context,String str)
 //public static byte[] compileXml(Context context, File file)
 try{
     byte[] data = XMLBuilder.compileXml(context, new File(path));//编译xml
     FileUtils.writeByteArrayToFile(new File("xxxx.xml"),data);//写出编译结果
 } catch (Exception e) {
     e.printStackTrace();
-}`
+}
+```
 
 3.XML或AXML加载为View，[参见AndroidXml2AXml](https://github.com/JealousCat/AndroidXml2AXml)
 ```/**
@@ -76,7 +84,9 @@ try{
 ```
 
 4.AXML转XML，[参见AndroidBinaryXml](https://github.com/senswrong/AndroidBinaryXml)
-`//从文件输入流、字节输入流、网络请求的输入流中解析AXML
+
+```
+//从文件输入流、字节输入流、网络请求的输入流中解析AXML
 try{
     byte[] data = FileUtils.readInputToByteArray(inputStream);
     String xml = Decoder.decode(context,data);
@@ -86,6 +96,7 @@ try{
     System.out.println(xml);
 } catch (Exception e) {
     e.printStackTrace();
-}`
+}
+```
 
 5.项目内提供了一个测试文件https://github.com/JealousCat/AndroidXml2AXml/test.xml，可用它测试编译或者加载效果
