@@ -1,19 +1,17 @@
 package android.xml2axml;
 
+import android.content.Context;
+import android.content.res.AttributeEntry;
+import android.content.res.ResValue;
 import android.xml2axml.chunks.EndElementChunk;
 import android.xml2axml.chunks.NameSpaceChunk;
 import android.xml2axml.chunks.ResIdsChunk;
 import android.xml2axml.chunks.StartElementChunk;
 import android.xml2axml.chunks.StringPoolChunk;
 import android.xml2axml.chunks.XMLChunk;
-import android.xml2axml.util.ResIdsSort;
 import android.xml2axml.util.StringPoolSort;
 import android.xml2axml.util.Vector;
-import android.content.Context;
-import android.content.res.AttributeEntry;
 import android.xml2axml.util.VectorList;
-import android.content.res.ResValue;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 
@@ -26,7 +24,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Created by JealousCat on 2024-08-09.
@@ -94,9 +93,20 @@ public class XMLNode {
     public int type;
 
     /**
+     * 标记需要保留的字符串
+     */
+    public static HashMap<String, Boolean> needString = null;
+
+    /**
      * 字符串池，仅在根节点中赋值
      **/
     public StringPool stringPool;
+
+    /**
+     * 存储非Attribute的原始值的字符串
+     */
+    public static StringPool otherStrPool;
+
     /**
      * 上下文环境，用于获取系统资源
      **/
@@ -118,10 +128,11 @@ public class XMLNode {
 
     /**
      * 创建节点
+     *
      * @param context 上下文
-     * @param s1 命名空间前缀或uri，将根据type判断
-     * @param s2 命名空间uri或标签名，将根据type判断
-     * @param type 节点类型
+     * @param s1      命名空间前缀或uri，将根据type判断
+     * @param s2      命名空间uri或标签名，将根据type判断
+     * @param type    节点类型
      */
     public XMLNode(Context context, String s1, String s2, int type) {
         if (type < TYPE_START_ELEMENT) {
@@ -137,10 +148,11 @@ public class XMLNode {
 
     /**
      * 创建命名空间节点
+     *
      * @param context 上下文环境
-     * @param prefix 命名空间前缀
-     * @param uri 命名空间uri
-     * @param type 节点类型
+     * @param prefix  命名空间前缀
+     * @param uri     命名空间uri
+     * @param type    节点类型
      * @return 命名空间节点
      */
     public static XMLNode newNamespace(Context context, String prefix, String uri, int type) {
@@ -149,10 +161,11 @@ public class XMLNode {
 
     /**
      * 创建标签节点
+     *
      * @param context 上下文环境
-     * @param ns 命名空间
-     * @param name 标签名
-     * @param type 节点类型
+     * @param ns      命名空间
+     * @param name    标签名
+     * @param type    节点类型
      * @return 标签节点
      */
     public static XMLNode newElement(Context context, String ns, String name, int type) {
@@ -161,11 +174,12 @@ public class XMLNode {
 
     /**
      * 解析XML文档为节点数
+     *
      * @param context 上下文环境
-     * @param data xml字节块
+     * @param data    xml字节块
      * @return 返回解析后的根节点
      * @throws XmlPullParserException 解析报错
-     * @throws IOException IO报错
+     * @throws IOException            IO报错
      */
     public static XMLNode parse(Context context, byte[] data) throws XmlPullParserException, IOException {
         XmlPullParserFactory f = XmlPullParserFactory.newInstance();
@@ -177,11 +191,12 @@ public class XMLNode {
 
     /**
      * 解析XML文档为节点数
+     *
      * @param context 上下文环境
-     * @param file xml文件
+     * @param file    xml文件
      * @return 返回解析后的根节点
      * @throws XmlPullParserException 解析报错
-     * @throws IOException IO报错
+     * @throws IOException            IO报错
      */
     public static XMLNode parse(Context context, File file) throws XmlPullParserException, IOException {
         XmlPullParserFactory f = XmlPullParserFactory.newInstance();
@@ -194,16 +209,20 @@ public class XMLNode {
 
     /**
      * 解析XML文档为节点数
+     *
      * @param context 上下文环境
-     * @param parser xml解析器
+     * @param parser  xml解析器
      * @return 返回解析后的根节点
      * @throws XmlPullParserException 解析报错
-     * @throws IOException IO报错
+     * @throws IOException            IO报错
      */
     public static XMLNode parse(Context context, XmlPullParser parser) throws XmlPullParserException, IOException {
         StringPool pool = new StringPool();
+        StringPool oStr = new StringPool();
+
         XMLNode root = new XMLNode(context, "", "", TYPE_XML);//根节点设置为整个文件
         root.stringPool = pool;
+        otherStrPool = oStr;
 
         int i, n, start, end, count;
         String prefix, uri, nonNullPrefix;
@@ -218,8 +237,12 @@ public class XMLNode {
                     for (n = start; n < end; n++) {
                         prefix = parser.getNamespacePrefix(n);
                         uri = parser.getNamespaceUri(n);
+
                         pool.add(prefix);
                         pool.add(uri);
+
+                        oStr.add(prefix);
+                        oStr.add(uri);
 
                         node = newNamespace(context, prefix, uri, TYPE_START_NAMESPACE);
                         node.mStartLineNumber = parser.getLineNumber();
@@ -234,8 +257,12 @@ public class XMLNode {
                     //startTag
                     ns = parser.getNamespace();
                     name = parser.getName();
+
                     pool.add(ns);
                     pool.add(name);
+
+                    oStr.add(ns);
+                    oStr.add(name);
 
                     node = newElement(context, ns, name, TYPE_START_ELEMENT);
                     node.mStartLineNumber = parser.getLineNumber();
@@ -263,6 +290,11 @@ public class XMLNode {
                         pool.add(prefix);
                         pool.add(name);
                         pool.add(value);
+
+                        oStr.add(ns);
+                        oStr.add(prefix);
+                        oStr.add(name);
+
                     }
 
                     current = node;
@@ -273,8 +305,13 @@ public class XMLNode {
                     current = current.parent;
                     ns = parser.getNamespace();
                     name = parser.getName();
+
                     pool.add(ns);
                     pool.add(name);
+
+                    oStr.add(ns);
+                    oStr.add(name);
+
                     node = newElement(context, ns, name, TYPE_END_ELEMENT);
                     node.mEndLineNumber = parser.getLineNumber();
                     node.deep = parser.getDepth();
@@ -291,8 +328,13 @@ public class XMLNode {
                         prefix = parser.getNamespacePrefix(n);
                         nonNullPrefix = prefix != null ? prefix : "";
                         uri = parser.getNamespaceUri(n);
+
                         pool.add(nonNullPrefix);
                         pool.add(uri);
+
+                        oStr.add(nonNullPrefix);
+                        oStr.add(uri);
+
                         node = newNamespace(context, nonNullPrefix, uri, TYPE_END_NAMESPACE);
                         node.mEndLineNumber = parser.getLineNumber();
                         node.deep = parser.getDepth();
@@ -309,7 +351,6 @@ public class XMLNode {
                 }
             }
         }
-        pool.sort();
         return root;
     }
 
@@ -329,10 +370,7 @@ public class XMLNode {
 
                 if (pkg.isEmpty()) continue;
 
-                int res = context.getResources().getIdentifier(e.name, attr, pkg);
-                if (res != 0) {
-                    e.nameResId = res;
-                }
+                e.nameResId = context.getResources().getIdentifier(e.name, attr, pkg);
             }
         }
         int N = mChildren.size();
@@ -361,20 +399,25 @@ public class XMLNode {
 
     /**
      * 根节点扁平化
+     *
      * @return 返回整个XML布局的编译后的二进制块
      * @throws IOException IO报错
      */
     public byte[] flatten() throws IOException {
         //收集整理资源ID
+        needString = new HashMap<>();
         Vector<Integer, String> resids = new Vector<>();
-        collect_resid_strings(stringPool, resids, true);//收集整理字符串池
-        collect_resid_strings(stringPool, resids, false);//收集整理ID池
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            resids.sort(new ResIdsSort());//ID池排序
-        } else {
-            Collections.sort(resids, new ResIdsSort());
-        }
+        collect_resid_strings(resids, true);//收集整理字符串池
+        collect_resid_strings(resids, false);//收集整理ID池
 
+        //从字符串池中移除不需要保留的字符串
+        Set<String> set = needString.keySet();
+        for(String str:set){
+            boolean b = Boolean.TRUE.equals(needString.get(str));
+            if(!b){
+                stringPool.remove(str);
+            }
+        }
         stringPool.sort(new StringPoolSort(resids));//字符串池排序
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         //写出StringPool
@@ -407,33 +450,41 @@ public class XMLNode {
 
     /**
      * 处理字符串池和ID池
-     * @param outPool 字符串池
+     *
      * @param outResIds ID池
-     * @param collect 是否处理字符串池，true处理字符串池，false处理ID池
+     * @param collect   是否处理字符串池，true处理字符串池，false处理ID池
      */
-    public void collect_resid_strings(StringPool outPool, Vector<Integer, String> outResIds, boolean collect) {
-        collect_attr_strings(outPool, outResIds, collect);
+    public void collect_resid_strings(Vector<Integer, String> outResIds, boolean collect) {
+        collect_attr_strings(outResIds, collect);
         int NC = mChildren.size();
         for (int i = 0; i < NC; i++) {
             XMLNode node = mChildren.itemAt(i);
-            node.collect_resid_strings(outPool, outResIds, collect);
+            node.collect_resid_strings(outResIds, collect);
         }
     }
 
     /**
-     * 根据属性键值对，添加属性资源ID或移除多余的字符串
-     * @param outPool 字符串池
+     * 根据属性键值对，添加属性资源ID或标记需要保留的字符串值
+     *
      * @param outResIds 资源ID池
-     * @param collect 是否在处理字符串池，true处理字符串池，false处理ID池
+     * @param collect   是否在处理字符串池，true处理字符串池，false处理ID池
      */
-    public void collect_attr_strings(StringPool outPool, Vector<Integer, String> outResIds, boolean collect) {
+    public void collect_attr_strings(Vector<Integer, String> outResIds, boolean collect) {
         int NA = mAttributes.size();
         for (int i = 0; i < NA; i++) {
             AttributeEntry entry = mAttributes.itemAt(i);
-            if (!entry.needStringValue() && collect) {
-                outPool.remove(entry.string);//移除string
-            }
-            if (!collect) {
+            if (collect) {
+                if (otherStrPool.contains(entry.string)) {
+                    needString.put(entry.string, true);
+                } else if (entry.needStringValue()) {
+                    needString.put(entry.string, true);
+                } else {
+                    Boolean b = needString.get(entry.string);
+                    if (b == null || (!b)) {
+                        needString.put(entry.string, false);
+                    }
+                }
+            } else {
                 if (entry.nameResId != 0) {
                     if (!outResIds.containsValue(entry.name)) {
                         outResIds.add(entry.nameResId, entry.name);
@@ -445,6 +496,7 @@ public class XMLNode {
 
     /**
      * 扁平化XML子节点
+     *
      * @param out 输出流
      * @throws IOException IO报错
      */

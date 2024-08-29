@@ -1,8 +1,9 @@
 package android.xml2axml.chunks;
 
-import android.xml2axml.XMLNode;
 import android.content.res.AttributeEntry;
 import android.content.res.ResValue;
+import android.xml2axml.XMLNode;
+import android.xml2axml.util.AttributeSort;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -136,6 +137,8 @@ public class StartElementChunk extends ElementChunk{
         buf.putShort(classIndex);
         buf.putShort(styleIndex);
 
+        node.mAttributes.sortNode(new AttributeSort<>());//attribute排序
+
         for (int i = 0; i < NA; i++) { //attributes
             AttributeEntry ae = node.mAttributes.itemAt(i);
             AttrExt attr = new AttrExt();
@@ -144,7 +147,7 @@ public class StartElementChunk extends ElementChunk{
             } else {
                 attr.ns_index = -1;
             }
-            attr.name_index = StringPoolChunk.strings.indexOf(ae.name);;
+            attr.name_index = StringPoolChunk.strings.indexOf(ae.name);
             if (ae.needStringValue()) {
                 attr.rawValue_index = StringPoolChunk.strings.indexOf(ae.string);
             } else {

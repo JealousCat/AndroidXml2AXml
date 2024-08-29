@@ -23,37 +23,37 @@ public class StringPoolChunk extends Chunk {
         /**
          * StringPoolChunk头内头结构
          */
-        public Chunk.Header header = new Chunk.Header();
+        public Header header = new Header();
         /**
          * 字符串总数
          */
         public int stringCount;
         /**
-         *样式总数，默认0
+         * 样式总数，默认0
          */
         public int styleCount;
         /**
-         *字符串是否是以utf8形式写出，这里强制设置为utf8，后面不处理utf16的情况
+         * 字符串是否是以utf8形式写出，这里强制设置为utf8，后面不处理utf16的情况
          */
         public int flags = 1 << 8;
         /**
-         *字符串块开始位置，其值是相对于字符串池第一个字节计算所得
+         * 字符串块开始位置，其值是相对于字符串池第一个字节计算所得
          */
         public int stringsStart;
         /**
-         *样式块开始位置，默认0
+         * 样式块开始位置，默认0
          */
         public int stylesStart;
 
         /**
-         *头大小
+         * 头大小
          */
         public int sizeof() {
             return header.sizeof() + 5 * 4;
         }
 
         /**
-         *写出头信息
+         * 写出头信息
          */
         public void write(ByteBuffer buf) {
             header.write(buf);
@@ -66,7 +66,7 @@ public class StringPoolChunk extends Chunk {
     }
 
     /**
-     *字符串偏移块
+     * 字符串偏移块
      */
     protected static class OffsetList extends Chunk {
 
@@ -84,9 +84,9 @@ public class StringPoolChunk extends Chunk {
                 buf.putInt(offset);
                 String str = strings.pool.get(i);
                 byte[] dat = str.getBytes(StandardCharsets.UTF_8);
-                offset = offset + 2 + dat.length;
-                offset = offset + (8 - (dat.length + 2) % 4);//处理任意情况下导致的字符串池结束位置的总字节数不是4的倍数的情况，即处理非整数边界报错。并重新结算当前字符串的偏移
+                offset = offset + dat.length + 3;
             }
+            offset = offset + (4-offset%4);//将字符串池大小设置为4的倍数，用于修复非整数边界报错
             data.header.chunkSize = offset;
             out.write(buf.array());
             out.flush();
@@ -94,12 +94,12 @@ public class StringPoolChunk extends Chunk {
     }
 
     /**
-     *字符串数据，其放在字符串偏移之后
+     * 字符串数据，其放在字符串偏移之后
      */
     protected static class DataList extends Chunk {
 
         public ArrayList<String> dat = StringPoolChunk.strings.pool;
-        public Chunk.Header header = new Chunk.Header();
+        public Header header = new Header();
 
         @Override
         public int sizeof() {
@@ -115,58 +115,54 @@ public class StringPoolChunk extends Chunk {
                 byte[] src = str.getBytes(StandardCharsets.UTF_8);//以UTF8编码形式写出
                 int strSize = str.length();
                 int encSize = src.length;
-                ENCODE_LENGTH(buf, 1, strSize);//字符串的字符数
-                ENCODE_LENGTH(buf, 1, encSize);//字符串的字节长度
+                ENCODE_LENGTH(buf, strSize);//字符串的字符数
+                ENCODE_LENGTH(buf, encSize);//字符串的字节长度
                 buf.put(src);
-                int of = 0;
-                of = 8 - (encSize + 2) % 4;//处理任意情况下导致的字符串池结束位置的总字节数不是4的倍数的情况，即处理非整数边界报错
-                for (int j = 0; j < of; j++) {
-                    buf.put((byte) 0);
-                }
+                buf.put((byte) 0);
+            }
+            for(int i=0;i<(sizeof()-buf.position());i++){//将字符串池大小设置为4的倍数，用于修复非整数边界报错
+                buf.put((byte)0);
             }
             out.write(buf.array());
             out.flush();
         }
+
         /**
-         *解码字符串实际长度
+         * 解码字符串实际长度
          */
-        public void ENCODE_LENGTH(ByteBuffer str, int chrsz, int strSize) {
-            int maxMask = 1 << (((chrsz) * 8) - 1);
+        public void ENCODE_LENGTH(ByteBuffer str, int strSize) {
+            int maxMask = 1 << 7;
             int maxSize = maxMask - 1;
-            int maskLen = (maxMask | (((strSize) >> ((chrsz) * 8)) & maxSize));
-            if (chrsz == 1) {//utf-8
-                if ((strSize) > maxSize) {
-                    str.put((byte) maskLen);
-                }
-                str.put((byte) strSize);
-            } else if (chrsz == 2) {//utf16-le
-                if ((strSize) > maxSize) {
-                    str.putShort((short) maskLen);
-                }
-                str.putShort((short) strSize);
+            int maskLen = (maxMask | (((strSize) >> 8) & maxSize));
+            if ((strSize) > maxSize) {
+                str.put((byte) maskLen);
             }
+            str.put((byte) strSize);
         }
     }
+
     /**
-     *字符串池
+     * 字符串池
      */
     public static StringPool strings;
     /**
-     *字符串偏移
+     * 字符串偏移
      */
     protected static OffsetList offset;
     /**
-     *字符串数据
+     * 字符串数据
      */
     protected static DataList data;
+
     /**
-     *创建字符串池二进制块
+     * 创建字符串池二进制块
      */
     public StringPoolChunk(StringPool pool) {
         strings = pool;
         offset = new OffsetList();
         data = new DataList();
     }
+
     /**
      * 字符串池二进制块 头
      */

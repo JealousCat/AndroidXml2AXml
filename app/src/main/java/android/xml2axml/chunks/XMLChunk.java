@@ -11,7 +11,7 @@ import java.nio.ByteOrder;
  * 整个XML文件 二进制块
  **/
 public class XMLChunk extends Chunk{
-    public Chunk.Header header = new Chunk.Header();
+    public Header header = new Header();
 
     @Override
     public int sizeof() {

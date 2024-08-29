@@ -14,18 +14,19 @@ public class StringPoolSort implements Comparator<String> {
         this.resids = ids;
     }
 
+    //attribute Name优先排在前面
     @Override
     public int compare(String o1, String o2) {
-        Integer i1 = resids.keyFor(o1);
-        Integer i2 = resids.keyFor(o2);
-        if(i1!=null && i2!=null){
-            return ((int)i1)-((int)i2);
-        } else if (i1 != null) {
+        int i1 = resids.indexOfValue(o1);
+        int i2 = resids.indexOfValue(o2);
+        if(i1!=-1 && i2!=-1){
+            return Integer.compare(i1,i2);
+        } else if (i1 != -1) {
             return -1;
-        }else if (i2!=null){
+        }else if (i2!=-1){
             return 1;
         }else{
-            return o1.compareTo(o2);
+            return 0;
         }
     }
 }

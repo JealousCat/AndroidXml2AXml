@@ -1,6 +1,11 @@
 package android.xml2axml.util;
 
+import android.os.Build;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
 /**
  * Created by JealousCat on 2024-08-09.
  * &#064;email 3147359496@qq.com
@@ -23,6 +28,16 @@ public class Vector<K,V> extends ArrayList<Vector.Node<K,V>> {
         for(int i=0;i<size();i++){
             Node<K,V> node = get(i);
             if(node!=null&&node.key!=null&&node.key.equals(key)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public int indexOfValue(V value){
+        for(int i=0;i<size();i++){
+            Node<K,V> node = get(i);
+            if(node!=null&&node.value!=null&&node.value.equals(value)){
                 return i;
             }
         }
@@ -135,6 +150,14 @@ public class Vector<K,V> extends ArrayList<Vector.Node<K,V>> {
         }
         Node<K,V> node = get(index);
         node.value = value;
+    }
+
+    public void sortNode(Comparator<? super Node<K, V>> comparator){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            this.sort(comparator);
+        }else{
+            Collections.sort(this,comparator);
+        }
     }
 
     public String toString(){

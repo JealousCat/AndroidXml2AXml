@@ -50,4 +50,14 @@ public class AttributeEntry {
                 || value.dataType == ResValue.TYPE_NULL
                 || value.dataType == ResValue.TYPE_STRING;
     }
+
+    public String toString(){
+        return "{prefix:" + prefix + ", " +
+                "ns:" + ns + ", " +
+                "name:" + name + ", " +
+                "string:" + string + ", " +
+                "value:" + value + ", " +
+                "index:" + index + ", " +
+                "nameResId:" + nameResId + "}";
+    }
 }

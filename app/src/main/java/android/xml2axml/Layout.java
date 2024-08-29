@@ -1,13 +1,12 @@
 package android.xml2axml;
 
 import android.axml2xml.Decoder;
-import android.view.ViewGroup;
-import android.xml2axml.util.FileUtils;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.xml2axml.util.FileUtils;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -15,6 +14,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -23,8 +23,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by JealousCat on 2024-08-14.
@@ -34,24 +32,6 @@ import java.util.Set;
  * </p>
  */
 public class Layout {
-
-    /**
-     * 用于标记当前节点在父节点中的相对位置
-     */
-    protected static class Child {
-        /**
-         * 节点位置
-         */
-        public String pos = "";
-        /**
-         * 父节点
-         */
-        public Child parent;
-        /**
-         * 子节点
-         */
-        public ArrayList<Child> children = new ArrayList<>();
-    }
 
     /**
      * XMLBlock类
@@ -86,23 +66,15 @@ public class Layout {
      * @throws XmlPullParserException XML解析报错
      * @throws IOException            IO报错
      */
-    public static Hashtable<String, String> collectId(XmlPullParser parser) throws XmlPullParserException, IOException {
-        Hashtable<String, String> tags = new Hashtable<>();
-        Child current = new Child();
+    public static ArrayList<String> collectId(XmlPullParser parser) throws XmlPullParserException, IOException {
+        ArrayList<String> tags = new ArrayList<>();
         int eventType = parser.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
             if (eventType == XmlPullParser.START_TAG) {
-                Child node = new Child();
-                node.parent = current;
-                current.children.add(node);
-                node.pos = current.pos + (current.children.size() - 1);
                 String tag = parser.getAttributeValue(null, "android:tag");
                 if (tag != null) {
-                    tags.put(tag, node.pos);
+                    tags.add(tag);
                 }
-                current = node;
-            } else if (eventType == XmlPullParser.END_TAG) {
-                current = current.parent;
             }
             eventType = parser.next();
         }
@@ -117,7 +89,7 @@ public class Layout {
      * @throws XmlPullParserException XML解析报错
      * @throws IOException            IO报错
      */
-    public static Hashtable<String, String> collectId(String xmlText) throws XmlPullParserException, IOException {
+    public static ArrayList<String> collectId(String xmlText) throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         XmlPullParser parser = factory.newPullParser();
         parser.setInput(new StringReader(xmlText));
@@ -132,7 +104,7 @@ public class Layout {
      * @throws XmlPullParserException XML解析报错
      * @throws IOException            IO报错
      */
-    public static Hashtable<String, String> collectId(byte[] data) throws XmlPullParserException, IOException {
+    public static ArrayList<String> collectId(byte[] data) throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         XmlPullParser parser = factory.newPullParser();
         parser.setInput(new ByteArrayInputStream(data), "UTF-8");
@@ -142,16 +114,13 @@ public class Layout {
     /**
      * 反射初始化XML加载为布局所必要的类和方法
      */
-    public static void initMethod() {
-        try {
-            if (blockClass == null) {
-                blockClass = Class.forName("android.content.res.XmlBlock");
-                newBlock = blockClass.getConstructor(byte[].class);
-                newBlock.setAccessible(true);
-                newParser = blockClass.getDeclaredMethod("newParser");
-                newParser.setAccessible(true);
-            }
-        } catch (Exception ignored) {
+    public static void initMethod() throws ClassNotFoundException, NoSuchMethodException {
+        if (blockClass == null) {
+            blockClass = Class.forName("android.content.res.XmlBlock");
+            newBlock = blockClass.getConstructor(byte[].class);
+            newBlock.setAccessible(true);
+            newParser = blockClass.getDeclaredMethod("newParser");
+            newParser.setAccessible(true);
         }
     }
 
@@ -178,8 +147,8 @@ public class Layout {
             return null;
         }
 
-        byte[] data;
-        InputStream input;
+        byte[] data = null;
+        InputStream input = null;
         switch (source.charAt(0)) {
             case '/':
                 return loadXml(context, new File(source), globals);
@@ -254,7 +223,7 @@ public class Layout {
         if (newParser == null) {
             return null;
         }
-        Hashtable<String, String> ids;
+        ArrayList<String> ids = null;
         LayoutInflater l = LayoutInflater.from(context);
         XmlResourceParser xrp;
         if (data[0] != 0x03) {
@@ -265,36 +234,20 @@ public class Layout {
         } else {
             ids = collectId(Decoder.decode(context, data));
         }
+        FileOutputStream ff = new FileOutputStream("/sdcard/c.xml");
+        ff.write(data);
+        ff.flush();
+        ff.close();
         Object xmlBlock = newBlock.newInstance((Object) data);
         xrp = (XmlResourceParser) newParser.invoke(xmlBlock);
         View view = l.inflate(xrp, null);
         if (view != null) {
             if (!ids.isEmpty()) {
-                Set<Map.Entry<String, String>> set = ids.entrySet();
-                for (Map.Entry<String, String> tag : set) {
-                    String id_name = tag.getKey();
-                    String view_pos = tag.getValue();
-                    globals.put(id_name, findView(view, view_pos));
+                for (String tag : ids) {
+                    globals.put(tag, view.findViewWithTag(tag));
                 }
             }
         }
         return view;
-    }
-
-    private static View findView(View parent, String pos) {
-        if (pos == null || pos.length() < 2) {
-            return parent;
-        }
-        ViewGroup group = (ViewGroup) parent;
-        for (int i = 1; i < pos.length(); i++) {
-            int c = pos.charAt(i) - '0';
-            parent = group.getChildAt(c);
-            if (parent instanceof ViewGroup) {
-                group = (ViewGroup) parent;
-            } else {
-                break;
-            }
-        }
-        return parent;
     }
 }

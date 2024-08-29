@@ -17,7 +17,7 @@ public abstract class NodeChunk extends Chunk {
         /**
          *Chunk通用头结构
          */
-        public Chunk.Header header = new Chunk.Header();
+        public Header header = new Header();
         /**
          *当前行
          */

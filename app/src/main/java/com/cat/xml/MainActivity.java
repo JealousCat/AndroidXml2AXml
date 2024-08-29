@@ -1,17 +1,17 @@
 package com.cat.xml;
 
+import android.PrintStack;
 import android.app.AlertDialog;
-import android.xml2axml.Layout;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.xml2axml.Layout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -56,10 +56,13 @@ public class MainActivity extends AppCompatActivity {
                     builder.setView(view).setTitle("布局预览").create().show();
                     sb.append("\n");
                     sb.append("ID表").append(ids);
-                    //System.out.println(ids.get("xxx"));
                     ((TextView)findViewById(R.id.results)).setText(sb.toString());
                 } catch (Exception e) {
                     e.printStackTrace();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(instance);
+                    String err = String.valueOf(new PrintStack(e));
+                    builder.setTitle("错误").setMessage(err).create().show();
+                    ((TextView)findViewById(R.id.results)).setText(err);
                 }
             }
         });

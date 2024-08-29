@@ -151,7 +151,10 @@ public class ResValue {
         System.out.println("attrType:"+attrType);
 
         boolean canStringCoerce = (attrType & ResMap.TYPE_STRING) != 0;
-
+        if (len==0){
+            outValue.dataType = ResValue.TYPE_STRING;
+            return true;
+        }
         if (s[0] == '@') {
             outValue.dataType = ResValue.TYPE_REFERENCE;
             if (len == 5 && s[1] == 'n' && s[2] == 'u' && s[3] == 'l' && s[4] == 'l') {
@@ -271,6 +274,7 @@ public class ResValue {
             String type = results[1];
             String name = results[2];
             Resources resources = context.getResources();
+
             int rid = resources.getIdentifier(name, type, packageName);
             if (rid != 0) {
                 int packageId = ResMap.Res_GETPACKAGE(rid) + 1;
@@ -601,7 +605,7 @@ public class ResValue {
                 }
             }
             if(m==null){
-                throw new RuntimeException("当前运行环境中android.content.res.AssetManager类getStyleAttributes方法");
+                throw new RuntimeException("当前运行环境中android.content.res.AssetManager类没有getStyleAttributes方法");
             }
             m.setAccessible(true);
             Object o = m.invoke(assetManager, resID);

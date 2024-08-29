@@ -13,7 +13,7 @@ import java.nio.ByteOrder;
  *  资源ID池的二进制块，ID从XML 节点的attributes获得
  **/
 public class ResIdsChunk extends Chunk {
-    public Chunk.Header header = new Chunk.Header();
+    public Header header = new Header();
     public Vector<Integer, String> ids;//资源ID
 
     public ResIdsChunk(Vector<Integer, String> resids) {

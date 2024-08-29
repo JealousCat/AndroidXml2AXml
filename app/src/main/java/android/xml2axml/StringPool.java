@@ -69,6 +69,13 @@ public class StringPool {
     }
 
     /**
+     * 字符串是否存在
+     */
+    public boolean contains(String val){
+        return pool.contains(val);
+    }
+
+    /**
      * 采用默认的排序方式对字符串池进行排序
      */
     public void sort(){

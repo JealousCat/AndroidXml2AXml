@@ -10,15 +10,9 @@
 （xml转axml或view的实现部分均有注释，可阅读帮助理解）
 
 # 缺点
-1.不支持链接上其他诸如drawable、style、layout的资源文件
+1.不支持链接上外部的其他如drawable、style、layout的资源文件
 
-2.不支持id属性，如果你写了id属性，将会被替换为tag属性，并将解析tag属性存储到一个HashMap<String, View>中
-
-3.android命名空间外的其他命名空间可能会导致编译错误
-
-4.目前采用tag来赋值查找子布局，由于编码格式的原因，部分tag会出现设置失效的情况。如果你使用findViewWithTag来查找子布局，可能会出现查找结果为null的情况。（这属于是一个已知BUG，暂未修复成功）
-但，为了解决上述问题，使用了布局childAt来获得对应tag的子布局，其结果存储在前面所说的HashMap中，如果你要获取子布局，建议从该HashMap中获取。
-
+2.不支持id属性，如果你写了id属性，将会被替换为tag属性，并将解析tag属性存储到一个HashMap<String, View>中，目前采用tag来查找子布局
 
 # 使用说明
 1.xml文件编写注意事项
