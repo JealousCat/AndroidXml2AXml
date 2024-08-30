@@ -122,7 +122,6 @@ public class ResValue {
         int attrMin = 0x80000000, attrMax = 0x7fffffff;
 
         if (attrID != 0 && !ResMap.Res_INTERNALID(attrID)) {
-            System.out.println("attrID!=0 entry string:"+entry.string);
             int p = getResourcePackageIndex(context, attrID);
             ArrayList<ResMap> map = new ArrayList<>();
             int bag = 0;
@@ -147,8 +146,6 @@ public class ResValue {
                 }
             }
         }
-
-        System.out.println("attrType:"+attrType);
 
         boolean canStringCoerce = (attrType & ResMap.TYPE_STRING) != 0;
         if (len==0){
@@ -358,7 +355,6 @@ public class ResValue {
         }
 
         if ((attrType & ResMap.TYPE_ENUM) != 0) {
-            System.out.println("enum:");
             int p = getResourcePackageIndex(context, attrID);
             ArrayList<ResMap> map = new ArrayList<>();
             int bag = 0;
@@ -382,7 +378,6 @@ public class ResValue {
         }
 
         if ((attrType & ResMap.TYPE_FLAGS) != 0) {
-            System.out.println("flags:");
             int p = getResourcePackageIndex(context, attrID);
             ArrayList<ResMap> map = new ArrayList<>();
             int bag = 0;
@@ -427,7 +422,7 @@ public class ResValue {
         if ((attrType & ResMap.TYPE_STRING) == 0) {
             return false;
         }
-        System.out.println("string entry string:"+entry.string);
+        System.out.println("entry string:"+entry.string);
         outValue.dataType = ResValue.TYPE_STRING;
         if (!entry.string.isEmpty()) {
             return collectString(entry, s, len);

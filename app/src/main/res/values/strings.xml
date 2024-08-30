@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">XML</string>
+    <string name="xmlview">加载为View并预览</string>
+    <string name="xmlvectordrawable">加载为Drawable并预览</string>
+    <string name="exec">执行</string>
+    <string name="xmlOut">编译写出到本地文件</string>
 </resources>

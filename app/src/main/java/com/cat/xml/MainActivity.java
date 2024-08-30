@@ -4,14 +4,18 @@ import android.PrintStack;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.xml2axml.Layout;
+import android.xml2axml.Loader;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,6 +31,8 @@ import java.util.HashMap;
 public class MainActivity extends AppCompatActivity {
 
     public Context instance;
+    public int checkedID = R.id.XMLView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,27 +48,44 @@ public class MainActivity extends AppCompatActivity {
         applyForMultiplePermissions();
 
         instance = this;
-        EditText txt = (EditText) findViewById(R.id.edit);
+        EditText editText = (EditText) findViewById(R.id.edit);
         Button bt = (Button) findViewById(R.id.run);
+        RadioGroup xml = (RadioGroup) findViewById(R.id.xmlGroup);
+
+        xml.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+              checkedID = checkedId;
+            }
+        });
+
         bt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String path = txt.getText().toString();
+                String path = editText.getText().toString();
                 try {
-                    HashMap<String,View> ids = new HashMap<String,View>();
-                    View view = Layout.loadXml(instance,path,ids);
-                    StringBuilder sb = new StringBuilder("解析为布局：" + view + "\n");
-                    AlertDialog.Builder builder = new AlertDialog.Builder(instance);
-                    builder.setView(view).setTitle("布局预览").create().show();
-                    sb.append("\n");
-                    sb.append("ID表").append(ids);
-                    ((TextView)findViewById(R.id.results)).setText(sb.toString());
+                    if(checkedID==R.id.XMLView) {
+                        HashMap<String, View> ids = new HashMap<String, View>();
+                        View view = Loader.loadXmlView(instance, path, ids);
+                        showAlert(view, "View预览");
+                        String sb = "解析为布局：" + view + "\n\n" + "ID表" + ids;
+
+                        ((TextView) findViewById(R.id.results)).setText(sb);
+                    } else if (checkedID==R.id.XMLVector) {
+                        Drawable drawable = Loader.loadXmlVectorDrawable(instance, path);
+                        ImageView image = new ImageView(instance);
+                        image.setImageDrawable(drawable);
+                        showAlert(image, "Drawable预览");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    AlertDialog.Builder builder = new AlertDialog.Builder(instance);
+
                     String err = String.valueOf(new PrintStack(e));
-                    builder.setTitle("错误").setMessage(err).create().show();
-                    ((TextView)findViewById(R.id.results)).setText(err);
+                    TextView txt = new TextView(instance);
+                    txt.setText(err);
+                    showAlert(txt, "错误！");
+
+                    ((TextView) findViewById(R.id.results)).setText(err);
                 }
             }
         });
@@ -104,5 +127,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void showToast(CharSequence csq) {
         Toast.makeText(this.getApplicationContext(), csq, Toast.LENGTH_SHORT).show();
+    }
+
+    public void showAlert(View view, String title) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(instance);
+        builder.setView(view).setTitle(title).create().show();
     }
 }

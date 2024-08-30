@@ -84,7 +84,11 @@ public class StringPoolChunk extends Chunk {
                 buf.putInt(offset);
                 String str = strings.pool.get(i);
                 byte[] dat = str.getBytes(StandardCharsets.UTF_8);
-                offset = offset + dat.length + 3;
+                if(dat.length>128){
+                    offset = offset + dat.length + 5;
+                }else {
+                    offset = offset + dat.length + 3;
+                }
             }
             offset = offset + (4-offset%4);//将字符串池大小设置为4的倍数，用于修复非整数边界报错
             data.header.chunkSize = offset;

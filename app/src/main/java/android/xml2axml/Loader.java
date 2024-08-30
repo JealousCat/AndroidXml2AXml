@@ -4,9 +4,15 @@ import android.axml2xml.Decoder;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.util.AttributeSet;
+import android.util.Xml;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.xml2axml.util.FileUtils;
+
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -31,7 +37,7 @@ import java.util.Hashtable;
  * 编译XML文本源码为二进制XML后加载为View
  * </p>
  */
-public class Layout {
+public class Loader {
 
     /**
      * XMLBlock类
@@ -125,7 +131,7 @@ public class Layout {
     }
 
     /**
-     * 加载一个外部或内部XML为布局
+     * 加载一个外部或内部XML资源，返回其原始的字节内容用于后续处理
      *
      * @param context 上下文
      * @param source  XML文本路径 或 文本内容 或 XML 网络链接
@@ -136,11 +142,10 @@ public class Layout {
      *                <p>  需要注意的是, res下的文件需要给它设置文件资源ID，设置为ID名和xml文件名相同
      *                <p>  系统资源或者其他以加载的资源包中的xml文件，其引用方式参考Android的相关规则
      *                <p>以'h'开头，表示url网络链接，将进行网络请求获得xml内容
-     * @param globals ID池，一个tag表示一个ID，一个ID对应一个View
-     * @return 加载所得布局，加载失败返回null
+     * @return 加载所得字节，失败返回null
      */
-    public static View loadXml(Context context, String source, HashMap<String, View> globals) throws Exception {
-        if (context == null || source == null || globals == null) {
+    public static byte[] loadXmlResources(Context context, String source) throws Exception {
+        if (context == null || source == null) {
             return null;
         }
         if (source.isEmpty()) {
@@ -151,7 +156,7 @@ public class Layout {
         InputStream input = null;
         switch (source.charAt(0)) {
             case '/':
-                return loadXml(context, new File(source), globals);
+                return loadXmlResources(context, new File(source));
             case '?':
                 if (source.startsWith("?assets/")) {
                     input = context.getAssets().open(source.substring(8));
@@ -185,37 +190,59 @@ public class Layout {
                 data = source.getBytes();
                 break;
         }
-        return loadXml(context, data, globals);
+        return data;
     }
 
     /**
-     * 加载一个外部或内部XML为布局
+     * 加载一个外部XML文件资源，返回其原始的字节内容用于后续处理
      *
      * @param context 上下文
      * @param file    XML文件
-     * @param globals ID池，一个tag表示一个ID，一个ID对应一个View
-     * @return 加载所得布局，加载失败返回null
+     * @return 加载所得字节，失败返回null
      */
-    public static View loadXml(Context context, File file, HashMap<String, View> globals) throws Exception {
-        if (context == null || file == null || globals == null) {
+    public static byte[] loadXmlResources(Context context, File file) throws Exception {
+        if (context == null || file == null) {
             return null;
         }
         if (!file.isFile()) {
             return null;
         }
-        byte[] data = FileUtils.readFileToByteArray(file);
-        return loadXml(context, data, globals);
+        return FileUtils.readFileToByteArray(file);
     }
 
     /**
-     * 加载一个外部或内部XML为布局
+     * 加载一个外部或内部XML为View
+     *
+     * @param context 上下文
+     * @param src     XML字符资源
+     * @param globals ID池，一个tag表示一个ID，一个ID对应一个View
+     * @return 加载所得布局，失败返回null
+     */
+    public static View loadXmlView(Context context, String src, HashMap<String, View> globals) throws Exception {
+        return loadXmlView(context, loadXmlResources(context, src), globals);
+    }
+
+    /**
+     * 加载一个外部或内部XML为View
+     *
+     * @param context 上下文
+     * @param src     XML文件资源
+     * @param globals ID池，一个tag表示一个ID，一个ID对应一个View
+     * @return 加载所得布局，失败返回null
+     */
+    public static View loadXmlView(Context context, File src, HashMap<String, View> globals) throws Exception {
+        return loadXmlView(context, loadXmlResources(context, src), globals);
+    }
+
+    /**
+     * 加载一个外部或内部XML为View
      *
      * @param context 上下文
      * @param data    XML字节块
      * @param globals ID池，一个tag表示一个ID，一个ID对应一个View
-     * @return 加载所得布局，加载失败返回null
+     * @return 加载所得布局，失败返回null
      */
-    public static View loadXml(Context context, byte[] data, HashMap<String, View> globals) throws Exception {
+    public static View loadXmlView(Context context, byte[] data, HashMap<String, View> globals) throws Exception {
         if (context == null || data == null || globals == null) {
             return null;
         }
@@ -234,10 +261,6 @@ public class Layout {
         } else {
             ids = collectId(Decoder.decode(context, data));
         }
-        FileOutputStream ff = new FileOutputStream("/sdcard/c.xml");
-        ff.write(data);
-        ff.flush();
-        ff.close();
         Object xmlBlock = newBlock.newInstance((Object) data);
         xrp = (XmlResourceParser) newParser.invoke(xmlBlock);
         View view = l.inflate(xrp, null);
@@ -249,5 +272,63 @@ public class Layout {
             }
         }
         return view;
+    }
+
+
+    /**
+     * 加载一个外部或内部XML为VectorDrawable
+     *
+     * @param context 上下文
+     * @param src     XML字符资源
+     * @return 加载所得Drawable，失败返回null
+     */
+    public static Drawable loadXmlVectorDrawable(Context context, String src) throws Exception {
+        return loadXmlVectorDrawable(context, loadXmlResources(context, src));
+    }
+
+    /**
+     * 加载一个外部或内部XML为VectorDrawable
+     *
+     * @param context 上下文
+     * @param src     XML文件资源
+     * @return 加载所得Drawable，失败返回null
+     */
+    public static Drawable loadXmlVectorDrawable(Context context, File src) throws Exception {
+        return loadXmlVectorDrawable(context, loadXmlResources(context, src));
+    }
+
+    /**
+     * 加载一个外部或内部XML为VectorDrawable
+     *
+     * @param context 上下文
+     * @param data    XML字节块
+     * @return 加载所得Drawable，失败返回null
+     */
+    public static Drawable loadXmlVectorDrawable(Context context, byte[] data) throws Exception {
+        if (context == null || data == null) {
+            return null;
+        }
+        initMethod();
+        if (newParser == null) {
+            return null;
+        }
+        XmlPullParser xrp;
+        if (data[0] != 0x03) {
+            String source = new String(data);
+            data = XMLBuilder.compileXml(context, source);
+        }
+        Object xmlBlock = newBlock.newInstance((Object) data);
+        xrp = (XmlPullParser) newParser.invoke(xmlBlock);
+        if (xrp != null) {
+            if (Build.VERSION.SDK_INT >= 24) {
+                return Drawable.createFromXml(context.getResources(), xrp);
+            }
+            AttributeSet asAttributeSet = Xml.asAttributeSet(xrp);
+            for (int next = xrp.next(); next != XmlPullParser.START_TAG; next = xrp.next()) {
+            }
+            return VectorDrawableCompat.createFromXmlInner(context.getResources(), xrp, asAttributeSet, (Resources.Theme) null);
+        } else {
+            return null;
+        }
     }
 }

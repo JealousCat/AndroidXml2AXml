@@ -11,28 +11,50 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="40dp"
         android:layout_marginLeft="5dp"
+        android:layout_marginTop="40dp"
         android:layout_marginRight="5dp"
         android:gravity="center|top"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" >
+        app:layout_constraintTop_toTopOf="parent">
+
         <EditText
-            android:layout_width="match_parent"
             android:id="@+id/edit"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:autofillHints="输入内容"
-            android:inputType="text"
-            tools:ignore="LabelFor" />
+            android:autofillHints="输入路径或文本内容"
+            android:inputType="text" />
+
+        <RadioGroup
+            android:id="@+id/xmlGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/XMLView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/xmlview" />
+
+            <RadioButton
+                android:id="@+id/XMLVector"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/xmlvectordrawable" />
+        </RadioGroup>
+
         <Button
             android:id="@+id/run"
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:layout_marginTop="5dp"
-            android:text="执行" />
+            android:text="@string/exec" />
+
         <ScrollView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -42,10 +64,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:focusable="true"
                 android:clickable="true"
-                android:textIsSelectable="true"
-                android:text="" />
+                android:focusable="true"
+                android:text=""
+                android:textIsSelectable="true" />
         </ScrollView>
     </LinearLayout>
 
