@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.xml2axml.util.FileUtils;
 
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -274,37 +275,36 @@ public class Loader {
         return view;
     }
 
-
     /**
-     * 加载一个外部或内部XML为VectorDrawable
+     * 加载一个外部或内部XML为任意类型Drawable
      *
      * @param context 上下文
      * @param src     XML字符资源
      * @return 加载所得Drawable，失败返回null
      */
-    public static Drawable loadXmlVectorDrawable(Context context, String src) throws Exception {
-        return loadXmlVectorDrawable(context, loadXmlResources(context, src));
+    public static Drawable loadXmlDrawable(Context context, String src) throws Exception {
+        return loadXmlDrawable(context, loadXmlResources(context, src));
     }
 
     /**
-     * 加载一个外部或内部XML为VectorDrawable
+     * 加载一个外部或内部XML为任意类型Drawable
      *
      * @param context 上下文
      * @param src     XML文件资源
      * @return 加载所得Drawable，失败返回null
      */
-    public static Drawable loadXmlVectorDrawable(Context context, File src) throws Exception {
-        return loadXmlVectorDrawable(context, loadXmlResources(context, src));
+    public static Drawable loadXmlDrawable(Context context, File src) throws Exception {
+        return loadXmlDrawable(context, loadXmlResources(context, src));
     }
 
     /**
-     * 加载一个外部或内部XML为VectorDrawable
+     * 加载一个外部或内部XML为任意类型Drawable
      *
      * @param context 上下文
      * @param data    XML字节块
      * @return 加载所得Drawable，失败返回null
      */
-    public static Drawable loadXmlVectorDrawable(Context context, byte[] data) throws Exception {
+    public static Drawable loadXmlDrawable(Context context, byte[] data) throws Exception {
         if (context == null || data == null) {
             return null;
         }
@@ -326,7 +326,7 @@ public class Loader {
             AttributeSet asAttributeSet = Xml.asAttributeSet(xrp);
             for (int next = xrp.next(); next != XmlPullParser.START_TAG; next = xrp.next()) {
             }
-            return VectorDrawableCompat.createFromXmlInner(context.getResources(), xrp, asAttributeSet, (Resources.Theme) null);
+            return Drawable.createFromXmlInner(context.getResources(), xrp, asAttributeSet, (Resources.Theme) null);
         } else {
             return null;
         }

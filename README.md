@@ -9,12 +9,12 @@
 3.支持xml转axml、axml转view，也可直接xml转view
 （xml转axml或view的实现部分均有注释，可阅读帮助理解）
 
-4.支持了xml矢量图的编译和加载
+4.支持了xml可绘制Drawable资源的编译和加载
 
 # 缺点
-1.不支持链接上外部的其他如drawable、style、layout的资源文件
+1.**不支持链接上外部的**其他如drawable、style、layout的资源文件
 
-2.不支持id属性，如果你写了id属性，将会被替换为tag属性，并将解析tag属性存储到一个HashMap<String, View>中，目前采用tag来查找子布局
+2.**不支持id属性**，如果你写了id属性，将会被替换为tag属性，并将解析tag属性存储到一个HashMap<String, View>中，目前采用tag来查找子布局
 
 # 使用说明
 1.xml文件编写注意事项
@@ -80,7 +80,7 @@ try{
 ```
 
 
-4.XML或AXML矢量图加载为Drawable，[参见AndroidXml2AXml](https://github.com/JealousCat/AndroidXml2AXml)
+4.XML或AXML加载为Drawable，[参见AndroidXml2AXml](https://github.com/JealousCat/AndroidXml2AXml)
 ```/**
 * 加载一个外部或内部XML为Drawable
 * @param context 上下文
@@ -94,17 +94,16 @@ try{
 *               <p>以'h'开头，表示url网络链接，将进行网络请求获得xml内容
 * @return 加载所得Drawable，失败返回null
 */
-//public static Drawable loadXmlVectorDrawable(Context context, String source)
+//public static Drawable loadXmlDrawable(Context context, String source)
 
-//public static Drawable loadXmlVectorDrawable(Context context, File file)
+//public static Drawable loadXmlDrawable(Context context, File file)
 
-//ids用于存储id或者tag所对应的View
 try{
     // 其他代码...
-    Drawable drawable = Loader.loadXmlVectorDrawable(context,filePath_or_xmlText);
-    //从res加载 Loader.loadXmlVectorDrawable(context,"?res/layout/xxx"); 这个xxx为文件ID名，并非文件名
-    //从assets加载 Loader.loadXmlVectorDrawable(context,"?assets/a.xml"); assets/之后是完整的文件名
-    //从网路加载 Loader.loadXmlVectorDrawable(context,"https://QQ3147359496/test.xml"); 传入的是文件直链
+    Drawable drawable = Loader.loadXmlDrawable(context,filePath_or_xmlText);
+    //从res加载 Loader.loadXmlDrawable(context,"?res/layout/xxx"); 这个xxx为文件ID名，并非文件名
+    //从assets加载 Loader.loadXmlDrawable(context,"?assets/a.xml"); assets/之后是完整的文件名
+    //从网路加载 Loader.loadXmlDrawable(context,"https://QQ3147359496/test.xml"); 传入的是文件直链
 
     ImageView image = new ImageView(context);
     image.setImageDrawable(drawable);

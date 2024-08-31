@@ -7,15 +7,17 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.xml2axml.Loader;
+import android.xml2axml.util.FileUtils;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -72,20 +74,24 @@ public class MainActivity extends AppCompatActivity {
 
                         ((TextView) findViewById(R.id.results)).setText(sb);
                     } else if (checkedID==R.id.XMLVector) {
-                        Drawable drawable = Loader.loadXmlVectorDrawable(instance, path);
-                        ImageView image = new ImageView(instance);
-                        image.setImageDrawable(drawable);
-                        showAlert(image, "Drawable预览");
+                        Drawable drawable = Loader.loadXmlDrawable(instance, path);
+                        View view = LayoutInflater.from(instance).inflate(R.layout.image_dialog,(ViewGroup) null);
+                        view.setBackground(drawable);
+                        showAlert(view, "Drawable预览");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
 
                     String err = String.valueOf(new PrintStack(e));
+                    if(FileUtils.error!=null){
+                        err+="\n\n"+ new PrintStack(FileUtils.error);
+                    }
                     TextView txt = new TextView(instance);
                     txt.setText(err);
                     showAlert(txt, "错误！");
 
                     ((TextView) findViewById(R.id.results)).setText(err);
+
                 }
             }
         });

@@ -19,9 +19,11 @@ import java.util.Set;
  * </p>
  */
 public class FileUtils {
+    public static Exception error;
     public static byte[] empty = new byte[0];
 
     public static byte[] readInputToByteArray(InputStream inputStream) {
+        error = null;
         try {
             byte[] buffer = new byte[10240];
             int len = 0;
@@ -32,6 +34,7 @@ public class FileUtils {
             bos.close();
             return bos.toByteArray();
         } catch (Exception e) {
+            error = e;
             try {
                 inputStream.close();
             } catch (Exception ignored) {
@@ -45,11 +48,13 @@ public class FileUtils {
         if (file == null) {
             return empty;
         }
+        error = null;
         try {
             FileInputStream input = new FileInputStream(file);
             return readInputToByteArray(input);
         } catch (Exception e) {
             e.printStackTrace();
+            error = e;
         }
         return empty;
     }
@@ -58,6 +63,7 @@ public class FileUtils {
         if (file == null) {
             return;
         }
+        error = null;
         try {
             FileOutputStream out = new FileOutputStream(file);
             out.write(bs);
@@ -65,35 +71,13 @@ public class FileUtils {
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
+            error = e;
         }
-    }
-
-    public static boolean isBinaryXml(InputStream inputStream) {
-        try {
-            byte header = (byte) (inputStream.read() & 255);
-            if (header == 0x03) {
-                try {
-                    inputStream.close();
-                } catch (Exception ignored) {
-                }
-                return true;
-            }
-        } catch (IOException e) {
-            try {
-                inputStream.close();
-            } catch (Exception ignored) {
-            }
-            throw new RuntimeException(e);
-        }
-        return false;
-    }
-
-    public static boolean isBinaryXml(String source) {
-        return source.charAt(0) == 0x03;
     }
 
     public static InputStream getUrlInput(String str, Hashtable<String, String> table) {
         InputStream in = null;
+        error = null;
         try {
             HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(str).openConnection();
             if (table != null && !table.isEmpty()) {
@@ -114,6 +98,7 @@ public class FileUtils {
             }
             in = httpURLConnection.getInputStream();
         } catch (Exception e) {
+            error = e;
             e.printStackTrace();
         }
         return in;
