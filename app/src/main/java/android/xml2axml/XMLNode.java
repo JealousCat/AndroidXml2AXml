@@ -530,13 +530,14 @@ public class XMLNode {
      * 前个节点的字符串形式
      */
     public StringBuilder front;
+    public static StringBuilder child_front = new StringBuilder();
 
     @NonNull
     public String toString() {
         StringBuilder sb = new StringBuilder();
         StringBuilder ident = new StringBuilder();
         for (int i = 0; i < deep; i++) {
-            ident.append(" ");
+            ident.append("  ");
         }
         switch (type) {
             case TYPE_START_ELEMENT: {
@@ -544,11 +545,10 @@ public class XMLNode {
                 if (front != null) {
                     sb.append(front);
                 }
-//                sb.append(ident).append("<!-- ").append("childAt:").append(childAt).append("\" -->\n");
                 int count = mAttributes.size();
                 for (int i = 0; i < count; i++) {
                     AttributeEntry e = mAttributes.itemAt(i);
-                    sb.append(ident).append(" ")
+                    sb.append(ident).append("   ")
                             .append(e.prefix).append(':').append(e.name)
                             .append('=')
                             .append('"').append(e.string).append("\"");
@@ -556,15 +556,30 @@ public class XMLNode {
                         sb.append("\n");
                     }
                 }
-                sb.append(">\n");
                 count = mChildren.size();
-                for (int i = 0; i < count; i++) {
-                    sb.append(mChildren.itemAt(i));
+                if (count > 0) {
+                    sb.append(">\n");
+                    for (int i = 0; i < count; i++) {
+                        sb.append(mChildren.itemAt(i));
+                    }
+                } else {
+                    sb.append("/>\n");
+                    if (parent != null) {
+                        int index = parent.mChildren.indexOfValue(this);
+                        if (index >= 0) {
+                            XMLNode end = parent.mChildren.itemAt(index + 1);
+                            if (end != null) {
+                                end.front = child_front;
+                            }
+                        }
+                    }
                 }
                 break;
             }
             case TYPE_END_ELEMENT: {
-                sb.append(ident).append("</").append(mElementName).append(">\n");
+                if (front == null) {
+                    sb.append(ident).append("</").append(mElementName).append(">\n");
+                }
                 break;
             }
             case TYPE_START_NAMESPACE: {
