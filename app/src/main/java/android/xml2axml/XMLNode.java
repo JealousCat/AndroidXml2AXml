@@ -217,6 +217,7 @@ public class XMLNode {
      * @throws IOException            IO报错
      */
     public static XMLNode parse(Context context, XmlPullParser parser) throws XmlPullParserException, IOException {
+
         StringPool pool = new StringPool();
         StringPool oStr = new StringPool();
 
@@ -280,6 +281,7 @@ public class XMLNode {
                         prefix = parser.getAttributePrefix(n);
                         name = parser.getAttributeName(n);
                         value = parser.getAttributeValue(n);
+
                         AttributeEntry entry = new AttributeEntry();
                         entry.ns = ns;
                         entry.prefix = prefix;
@@ -294,7 +296,6 @@ public class XMLNode {
                         oStr.add(ns);
                         oStr.add(prefix);
                         oStr.add(name);
-
                     }
 
                     current = node;
@@ -382,7 +383,7 @@ public class XMLNode {
     /**
      * 预处理资源值
      */
-    public void parseValues() {
+    public void parseValues() throws Exception{
         if (type == TYPE_START_ELEMENT || type == TYPE_END_ELEMENT) {
             int N = mAttributes.size();
             String[] defPackage = {context.getPackageName()};

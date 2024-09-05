@@ -12,13 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.xml2axml.Loader;
 import android.xml2axml.util.FileUtils;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -26,7 +24,6 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -137,6 +134,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void showAlert(View view, String title) {
         AlertDialog.Builder builder = new AlertDialog.Builder(instance);
-        builder.setView(view).setTitle(title).create().show();
+        builder.setView(view).setTitle(title).setNegativeButton("取消",null).create().show();
     }
 }

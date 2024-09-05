@@ -23,7 +23,7 @@ public class XMLBuilder {
      * @throws XmlPullParserException XML解析报错
      * @throws IOException IO报错
      */
-    public static byte[] compileXml(Context context,String str) throws XmlPullParserException, IOException {
+    public static byte[] compileXml(Context context,String str) throws Exception {
         XMLNode root = XMLNode.parse(context, str.getBytes(StandardCharsets.UTF_8));
         return compileXml(context, root);
     }
@@ -36,7 +36,7 @@ public class XMLBuilder {
      * @throws XmlPullParserException XML解析报错
      * @throws IOException IO报错
      */
-    public static byte[] compileXml(Context context, File file) throws XmlPullParserException, IOException {
+    public static byte[] compileXml(Context context, File file) throws Exception {
         XMLNode root = XMLNode.parse(context,file);
         return compileXml(context,root);
     }
@@ -48,7 +48,7 @@ public class XMLBuilder {
      * @return 编译结果
      * @throws IOException IO报错
      */
-    public static byte[] compileXml(Context context, XMLNode root) throws IOException {
+    public static byte[] compileXml(Context context, XMLNode root) throws Exception {
         root.assignResourceIds();
         root.parseValues();
         return root.flatten();

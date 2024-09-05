@@ -3,6 +3,7 @@ package android.content.res;
 import android.content.Context;
 import android.util.SparseArray;
 import android.util.TypedValue;
+import android.xml2axml.util.Reflect;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -20,23 +21,23 @@ public class ResValue {
      */
     public short size = 8;
     /**
-     *默认0
+     * 默认0
      */
     public byte res0 = 0;
     /**
-     *资源值类型
+     * 资源值类型
      */
     public byte dataType;
     /**
-     *整数资源值
+     * 整数资源值
      */
     public int data;
     /**
-     *浮点数资源值
+     * 浮点数资源值
      */
     public float data_f;
     /**
-     *资源值类型
+     * 资源值类型
      */
     public static final int TYPE_NULL = 0x00,
             TYPE_REFERENCE = 0x01,
@@ -59,7 +60,7 @@ public class ResValue {
             TYPE_LAST_COLOR_INT = 0x1f,
             TYPE_LAST_INT = 0x1f;
     /**
-     *整数资源值的类型
+     * 整数资源值的类型
      */
     public static final int COMPLEX_UNIT_SHIFT = 0,
             COMPLEX_UNIT_MASK = 0xf,
@@ -82,37 +83,41 @@ public class ResValue {
 
     public static final int DATA_NULL_UNDEFINED = 0,
             DATA_NULL_EMPTY = 1;
+
     /**
-     *资源值字节大小
+     * 资源值字节大小
      */
-    public int sizeof(){
-        return 2+2+4;
+    public int sizeof() {
+        return 2 + 2 + 4;
     }
+
     /**
-     *写出资源值
+     * 写出资源值
      */
-    public void write(ByteBuffer buf){
+    public void write(ByteBuffer buf) {
         buf.putShort(size);
         buf.put(res0);
         buf.put(dataType);
-        if(dataType!=TYPE_FLOAT){
+        if (dataType != TYPE_FLOAT) {
             buf.putInt(data);
-        }else{
+        } else {
             buf.putFloat(data_f);
         }
     }
+
     /**
-     *当前app资源包索引
+     * 当前app资源包索引
      */
     public static final int APP_PACKAGE_ID = 0x7f;
     /**
-     *系统资源包索引
+     * 系统资源包索引
      */
     public static final int SYS_PACKAGE_ID = 0x01;
+
     /**
-     *字符串转资源值
+     * 字符串转资源值
      */
-    public static boolean stringToValue(Context context, AttributeEntry entry, String[] defPackage) {
+    public static boolean stringToValue(Context context, AttributeEntry entry, String[] defPackage) throws Exception{
         ResValue outValue = entry.value;
         int attrType = ResMap.TYPE_ANY;
         int attrID = entry.nameResId;
@@ -148,7 +153,7 @@ public class ResValue {
         }
 
         boolean canStringCoerce = (attrType & ResMap.TYPE_STRING) != 0;
-        if (len==0){
+        if (len == 0) {
             outValue.dataType = ResValue.TYPE_STRING;
             return true;
         }
@@ -422,7 +427,7 @@ public class ResValue {
         if ((attrType & ResMap.TYPE_STRING) == 0) {
             return false;
         }
-        System.out.println("entry string:"+entry.string);
+        System.out.println("entry string:" + entry.string);
         outValue.dataType = ResValue.TYPE_STRING;
         if (!entry.string.isEmpty()) {
             return collectString(entry, s, len);
@@ -430,8 +435,9 @@ public class ResValue {
 
         return true;
     }
+
     /**
-     *重新整理字符串原值
+     * 重新整理字符串原值
      */
     private static boolean collectString(AttributeEntry e, char[] s, int len) {
         StringBuilder tmp = new StringBuilder();
@@ -520,18 +526,20 @@ public class ResValue {
 
         return true;
     }
+
     /**
-     *比较资源名字符串
+     * 比较资源名字符串
      */
     private static boolean strzcmp(char[] s, int offset, int len, String name) {
         String x = new String(s, offset, len);
-        if(name.startsWith("android:id/")){
-            return ("android:id/"+x).equals(name);
+        if (name.startsWith("android:id/")) {
+            return ("android:id/" + x).equals(name);
         }
         return name.endsWith(x);
     }
+
     /**
-     *资源名获取
+     * 资源名获取
      */
     private static boolean getResourceName(Context context, int resId, String[] results) {
         try {
@@ -542,8 +550,9 @@ public class ResValue {
             return false;
         }
     }
+
     /**
-     *HEX检查
+     * HEX检查
      */
     public static int get_hex(char c, boolean[] outError) {
         if (c >= '0' && c <= '9') {
@@ -556,24 +565,27 @@ public class ResValue {
         outError[0] = true;
         return 0;
     }
+
     /**
-     *资源包列表
+     * 资源包列表
      */
     public static SparseArray<String> resPackages = null;
+
     /**
-     *获取资源包索引
+     * 获取资源包索引
      */
-    private static int getResourcePackageIndex(Context context, int resID) {
+    private static int getResourcePackageIndex(Context context, int resID) throws Exception {
         if (resPackages == null) {
             AssetManager assetManager = context.getAssets();
-            try {
-                Method m = AssetManager.class.getDeclaredMethod("getAssignedPackageIdentifiers");
+            Method m = Reflect.getDeclaredMethod(AssetManager.class, "getAssignedPackageIdentifiers", null);
+            if (m != null) {
                 m.setAccessible(true);
                 Object o = m.invoke(assetManager);
                 if (o != null) {
                     resPackages = (SparseArray<String>) o;
                 }
-            } catch (Exception ignored) {
+            } else {
+                throw new RuntimeException("未从android.content.res.AssetManager类中找到getAssignedPackageIdentifiers方法");
             }
         }
         if (resPackages == null) {
@@ -585,23 +597,14 @@ public class ResValue {
         }
         return -75;
     }
+
     /**
-     *获取系统资源Bag
+     * 获取系统资源Bag
      */
-    private static int lockBag(Context context, int resID, ArrayList<ResMap> bag) {
+    private static int lockBag(Context context, int resID, ArrayList<ResMap> bag) throws Exception {
         AssetManager assetManager = context.getAssets();
-        try {
-            Method[] ms = AssetManager.class.getDeclaredMethods();
-            Method m = null;
-            for(Method method:ms){
-                if(method.getName().equals("getStyleAttributes")){
-                    m = method;
-                    break;
-                }
-            }
-            if(m==null){
-                throw new RuntimeException("当前运行环境中android.content.res.AssetManager类没有getStyleAttributes方法");
-            }
+        Method m = Reflect.getDeclaredMethod(AssetManager.class, "getStyleAttributes", new Class[]{int.class});
+        if (m != null) {
             m.setAccessible(true);
             Object o = m.invoke(assetManager, resID);
             if (o == null) {
@@ -621,13 +624,13 @@ public class ResValue {
             }
             array.close();
             return name_ident_array.length;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            throw new RuntimeException("未从android.content.res.AssetManager类中找到getStyleAttributes方法");
         }
-        return -75;
     }
+
     /**
-     *资源索引解析
+     * 资源索引解析
      */
     private static boolean expandResourceRef(String refStr, int refLen, String[] results, String defPackage) {
         char[] ref = refStr.toCharArray();
@@ -679,11 +682,11 @@ public class ResValue {
     }
 
     /**
-     *字符串转整数
+     * 字符串转整数
      */
     private static boolean stringToInt(char[] s, int len, ResValue outValue) {
         int s_pos = 0;
-        while (len > 0 && (s[s_pos]<=32)) {
+        while (len > 0 && (s[s_pos] <= 32)) {
             s_pos++;
             len--;
         }
@@ -747,7 +750,7 @@ public class ResValue {
             val = -val;
         }
 
-        while (i < len && s[i]<=32) {
+        while (i < len && s[i] <= 32) {
             i++;
         }
 
@@ -763,7 +766,7 @@ public class ResValue {
     }
 
     /**
-     *单位
+     * 单位
      */
     private static final UnitEntry[] unitNames = {
             new UnitEntry("px", 2, ResValue.TYPE_DIMENSION, ResValue.COMPLEX_UNIT_PX, 1.0f),
@@ -778,7 +781,7 @@ public class ResValue {
     };
 
     /**
-     *单位转换
+     * 单位转换
      */
     private static boolean parse_unit(ResValue outValue, float[] outScale, String end) {
         UnitEntry[] cur = unitNames;
@@ -796,7 +799,7 @@ public class ResValue {
     }
 
     /**
-     *字符串转单精浮点数
+     * 字符串转单精浮点数
      */
     private static boolean stringToFloat(char[] s, int len, ResValue outValue) {
         String end = null;
